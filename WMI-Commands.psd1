@@ -12,7 +12,7 @@
 RootModule = 'WMI-Commands'
 
 # Version number of this module.
-ModuleVersion = '2.0'
+ModuleVersion = '2.1'
 
 # ID used to uniquely identify this module
 GUID = 'ea4adda6-fddf-47a8-b2da-fe74dece3543'
