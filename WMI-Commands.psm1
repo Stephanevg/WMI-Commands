@@ -11,12 +11,14 @@ Function Get-WMICommands {
 	.EXAMPLE
 		Get-WMICommands
 
-
+	.Parameter Filter
+		This parameter allows to filter on the commands to be returned.
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date: 24.07.2014
         Last modification date: 24.07.2014
+        history: Added filter possiblities.
 
 	.LINK
 		www.powershellDistrict.com
@@ -27,10 +29,11 @@ Function Get-WMICommands {
 #>
     [CmdletBinding()]
 	Param(
-	
+	 [Parameter(Mandatory=$false,position=0)][string]$filter = "*"
 	)
 
-    Get-command -Module "WMI-Commands"
+      
+    Get-command -Module "WMI-Commands" -Name $filter
 }
 
 Function New-WMIClass {
