@@ -1533,3 +1533,58 @@ Function Get-WMINameSpace {
     }
 }
 #EndRegion
+
+#Region Version 3.0
+
+#version 3.0
+
+Function Remove-WMINameSpace {
+
+[CmdletBinding()]
+	Param(
+		[parameter(mandatory=$true,valuefrompipeline=$true)]
+        [ValidateScript({
+            $_ -ne ""
+        })]
+        [string[]]$NameSpace,
+
+        [Parameter(Mandatory=$false)][string]$Root = "root",
+
+        [Parameter(Mandatory=$false)]
+        [Switch]$Force
+)
+
+    
+    write-verbose "Attempting to delete classes"
+    foreach ($Np in $NameSpace){
+        if(!($Np)){
+            write-verbose "Class name is empty. Skipping..."
+        }else{
+            $WMI_NameSpace = Get-WMINameSpace -Name $Np -Root $Root
+            if ($WMI_NameSpace){
+        
+        
+                if (!($force)){
+                    
+                    $Answer = Read-Host "Deleting $($WMI_NameSpace.name) can make your system unreliable. Press 'Y' to continue"
+                        if ($Answer -eq"Y"){
+                             $WMI_NameSpace.Delete()
+                            write-output "$($WMI_NameSpace.name) deleted."
+                
+                        }else{
+                            write-output "Uknowned answer. Class '$($WMI_NameSpace.name)' has not been deleted."
+                        }
+                    }
+                elseif ($force){
+                     $WMI_NameSpace.Delete()
+                            write-output "$($WMI_NameSpace.name) deleted."
+                }
+             }Else{
+                write-output "Class $($Np) not present"
+             }#End if WMI_CLASS
+        }#EndIfclass emtpy
+    }#End foreach
+        
+
+
+}
