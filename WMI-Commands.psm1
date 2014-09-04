@@ -193,15 +193,15 @@ Function Set-WMIPropertyValue {
 		The value of the property.
 
 	.EXAMPLE
-		New-WMIProperty -ClassName "PowerShellDistrict" -PropertyName "WebSite" -PropertyValue "www.PowerShellDistrict.com"
+		Set-WMIProperty -ClassName "PowerShellDistrict" -PropertyName "WebSite" -PropertyValue "www.PowerShellDistrict.com"
         Sets the property "WebSite" to "www.PowerShellDistrict.com"
     .EXAMPLE
-		New-WMIProperty -ClassName "PowerShellDistrict" -PropertyName "MainTopic" -PropertyValue "PowerShellDistrict"
-        Sets the property "MainTopic" to "PowerShell"
+		set-WMIProperty -ClassName "PowerShellDistrict" -PropertyName "Author" -PropertyValue "Stéphane van Gulick"
+        Sets the property "Author" to "Stéphane van Gulick"
 
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:16.07.2014
         Last modification date: 16.07.2014
@@ -217,11 +217,6 @@ Function Set-WMIPropertyValue {
 
 [CmdletBinding()]
 	Param(
-		[Parameter(Mandatory=$true)]
-        [ValidateScript({
-            $_ -ne ""
-        })]
-        [string]$ClassName,
 
         [Parameter(Mandatory=$false)]
         [string]$NameSpace="Root\cimv2",
@@ -230,26 +225,40 @@ Function Set-WMIPropertyValue {
         [ValidateScript({
             $_ -ne ""
         })]
-        [string]$PropertyName,
+        [string]$ClassName,
 
         [Parameter(Mandatory=$true)]
-        [string]$PropertyValue
+        [ValidateScript({
+            $_ -ne ""
+        })]
+        [string]$PropertyName,
+
+        [Parameter(Mandatory=$false)]
+        [string]$PropertyValue=""
 
 	
 	)
     begin{
          write-verbose "Setting new  value : $($PropertyValue) on property: $($PropertyName):"
-         [wmiclass]$WMI_Class = Get-WmiObject -Class $ClassName -list
+         $PropertyInfo = Get-WMIProperty -NameSpace $NameSpace -ClassName $ClassName -PropertyName $PropertyName
          
 
     }
     Process{
-            $WMI_Class.SetPropertyValue($PropertyName,$PropertyValue)
+            
+            if ($PropertyInfo){
+                $WMI_Class = Get-WMIClass -NameSpace $NameSpace -ClassName $ClassName
+                $WMI_Class.SetPropertyValue($PropertyName,$PropertyValue)
+            }else{
+                Write-Warning "Could not find property $($Propertyname) in namespace $($namespace)\$($ClassName)"
+                break
+            }
+            
             
     }
     End{
         $WMI_Class.Put() | Out-Null
-        return Get-WmiObject -Class $ClassName -list
+        return Get-WMIProperty -NameSpace $NameSpace -ClassName $ClassName -PropertyName $PropertyName
     }
 
 
