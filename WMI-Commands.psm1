@@ -115,14 +115,19 @@ Function New-WMIProperty {
     .PARAMETER  PropertyValue
 		The value of the property.
 
+    .PARAMETER Force
+        Will rewrite the property if it is already present.
+
 	.EXAMPLE
 		New-WMIProperty -ClassName "PowerShellDistrict" -PropertyName "WebSite" -PropertyValue "www.PowerShellDistrict.com"
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:16.07.2014
-        Last modification date: 16.07.2014
+        Last modification date: 12.09.2014
+        - Added possiblity to create array of values.
+        - Added -force parameter.
 
 	.LINK
 		www.powershellDistrict.com
@@ -144,29 +149,64 @@ Function New-WMIProperty {
         [Parameter(Mandatory=$false)]
         [string]$NameSpace="Root\cimv2",
 
+        [Parameter(Mandatory=$false)][switch]$force,
+
         [Parameter(Mandatory=$true)][string[]]$PropertyName,
         [Parameter(Mandatory=$false)][string]$PropertyValue=""
 
 	
 	)
     begin{
-        [wmiclass]$WMI_Class = Get-WmiObject -Class $ClassName -Namespace $NameSpace -list
+        [wmiclass]$WMI_Class = Get-WMIClass -Namespace $NameSpace -Class $ClassName
     }
     Process{
-            write-verbose "Attempting to create property $($PropertyName) with value: $($PropertyValue) in class: $($ClassName)"
-            $WMI_Class.Properties.add($PropertyName,$PropertyValue)
-            Write-Output "Added $($PropertyName)."
+
+            foreach ($property in $PropertyName){
+                $PropertyPresence = Get-WMIProperty -NameSpace  $NameSpace -ClassName $ClassName -PropertyName $property
+
+                if ($PropertyPresence){
+                            if (!($force)){
+             
+                                    write-output "Property $($property) has not been created because it is already present. Please use -force or delete the property."
+                                    continue
+                        
+                            }#End force
+                            elseif ($force){
+                                    write-verbose "Attempting to create property $($property) with value: $($PropertyValue) in class: $($ClassName)"
+                                    try{
+                                        $WMI_Class.Properties.add($property,$PropertyValue)
+                                        Write-Output "Added $($property)."
+                                    }catch{
+                                       Write-Error "Error during the creation of the property." 
+                                       break
+                                    }
+                            }
+                }Else{
+                            write-verbose "Attempting to create property $($property) with value: $($PropertyValue) in class: $($ClassName)"
+                                    try{
+                                        $WMI_Class.Properties.add($property,$PropertyValue)
+                                        Write-Output "Added $($property)."
+                                    }catch{
+                                       Write-Error "Error during the creation of the property." 
+                                       break
+                                    }
+                }#End if    
+            }#End foreach
+
+
+                
+           
     }
     end{
-           		$WMI_Class.Put() | Out-Null
-                [wmiclass]$WMI_Class = Get-WmiObject -Class $ClassName -list
-                return $WMI_Class
-    }
 
-            
-            
-  
-                    
+            if ($PropertyPresence  -and $force){
+           		$WMI_Class.Put() | Out-Null
+                [wmiclass]$WMI_Class = Get-WMIClass -NameSpace $NameSpace -Class $ClassName
+                return $WMI_Class
+               }else{
+                    $WMI_Class.Put() | Out-Null
+                }
+    }
 
 
 }
