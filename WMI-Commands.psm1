@@ -776,31 +776,32 @@ Function Get-WMIProperty {
     }  
 }
 
-Function Get-WMIPropertyQualifier {
+Function Get-WMIQualifier {
 
 <#
 	.SYNOPSIS
-		This function gets a WMI property qualifier.
+		This function gets a WMI  qualifier.
 
 	.DESCRIPTION
-		The function allows return a WMI property qualifiers from a specefic WMI property, from a specific Class and located in a specefic NameSpace.
+		The function allows return a WMI qualifier from a specefic WMI property, class or namespace.
 
-	.PARAMETER  ClassName
+	.PARAMETER  Class
 		Specify the name of the class.
 
-	.PARAMETER  PropertyName
+	.PARAMETER  Property
 		The name of the property to retrive the qualifiers from.
 
 	.EXAMPLE
-		Get-WMIPropertyQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite"
+		Get-WMIQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite"
         Returns the property qualifier information from the WMI propertyName "WebSite"
 
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:29.07.2014
         Last modification date: 29.07.2014
+        History: 19.09.2014 --> renamed from Get-WMIPropertyQualifier to Get-WMIQualifier
 
 	.LINK
 		www.powershellDistrict.com
@@ -1166,7 +1167,7 @@ Function Get-WMIClassInstance {
                 $return = $WmiClass.getInstances()
             }else{
                $Instances = $WmiClass.getInstances()
-               $KeyProperty = Get-WMIKeyPropertyQualifier -NameSpace $NameSpace -ClassName $ClassName
+               $KeyProperty = Get-WMIKeyQualifier -NameSpace $NameSpace -ClassName $ClassName
 
                $return = $Instances | where $KeyProperty.name -eq $InstanceName
             }
@@ -1355,7 +1356,7 @@ Function New-WMIClassInstance {
         
         Creates a new Instance name "Instance01" of the WMI custom class "PowerShellDistrict" and sets it in a variable for future use.
 
-        The at least the key property set to a value. To get the key property of a class, use the Get-WMIKeyPropertyQualifier cmdlet.		
+        The at least the key property set to a value. To get the key property of a class, use the Get-WMIKeyQualifier cmdlet.		
 
     .EXAMPLE
         New-WMIClassInstance -ClassName PowerShellDistrict -PutInstance $MyNewInstance
@@ -1425,11 +1426,11 @@ Function New-WMIClassInstance {
     }
 }
 
-Function Get-WMIKeyPropertyQualifier {
+Function Get-WMIKeyQualifier {
 
 <#
 	.SYNOPSIS
-		This function gets the WMI Key property qualifier from a specefic class.
+		This function gets the WMI Key qualifier from a specefic class.
 
 	.DESCRIPTION
 		This functions willl return an object of the key property of a specefic WMI class.
@@ -1442,16 +1443,16 @@ Function Get-WMIKeyPropertyQualifier {
         Specify the name of the namespace where the class is located (default is Root\cimv2).
 
 	.EXAMPLE
-		Get-WMIKeyPropertyQualifier -ClassName "PowerShellDistrict"
+		Get-WMIKeyQualifier -ClassName "PowerShellDistrict"
         Returns the property that has the key qualifier.
 
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:12.08.2014
         Last modification date: 12.08.2014
-
+	19.09.2014 --> Renamed from Get-wmikeypropertyqualifier to Get-wmikeyqualifier
 	.LINK
 		www.powershellDistrict.com
 
@@ -1484,7 +1485,7 @@ Function Get-WMIKeyPropertyQualifier {
 
             foreach ($Property in $Properties){
                 
-                $Qualifiers = Get-WMIPropertyQualifier -NameSpace $NameSpace -ClassName $ClassName -PropertyName $Property.name
+                $Qualifiers = Get-WMIQualifier -NameSpace $NameSpace -ClassName $ClassName -PropertyName $Property.name
                 foreach ($Qualifier in $Qualifiers){
                     if ($Qualifier.name -eq "key"){
                         write-verbose "Key property for class $($ClassName) in NameSpace $($NameSpace) is $($Property.Name)."
