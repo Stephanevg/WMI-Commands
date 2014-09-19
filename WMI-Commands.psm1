@@ -675,25 +675,6 @@ Function Get-WMIClass{
 #Region V2.0
 
 
-
-
-
-####-----TO DO -------------------###
-
-
-
-#TODO: Add a foreach in the New-WMIProperty --> 2.5 ?
-#Export mof file (include the namepsaces).
-#Remove-WmiInstance AccepteValueFromPipeLine = $true for instanceName and class name (in order to alllow Get-WMiInstance -District | Remove-wmiInstance
-
-#Nice to have
-    #Create function to rebuild repository.
-    #Ping back http://blogs.catapultsystems.com/jsandys/archive/2014/02/02/wmi-manipulations-and-manifestations.aspx
-
-#---Done :
-#Done: Add foreach in Remove-WMIClassInstance --> 2.5 ?
-#TODO: Add a foreach and [] in remove-WMIProperty --> v2.5 ?
-
 #---- Beta tests -----
 
 Function Get-WMIProperty {
@@ -1019,13 +1000,14 @@ Function Set-WMIQualifier {
 
 }
 
-Function Remove-WMIPropertyQualifier {
+Function Remove-WMIQualifier {
 <#
 	.SYNOPSIS
 		This function removes a WMI qualifier from a specefic property.
 
 	.DESCRIPTION
 		The function allows remove a property qualifier from an existing WMI property (Or several ones).
+        If the classes has instances, they will beed to be deleted prior to the deletion of the Qualifier.
 
 	.PARAMETER  ClassName
 		Specify the name of the class where the property resides.
@@ -1040,13 +1022,14 @@ Function Remove-WMIPropertyQualifier {
         Specify the name of the namespace where the class is located (default is Root\cimv2).
 
 	.EXAMPLE
-		Remove-WMIPropertyQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite" -QualifierName Key
+		Remove-WMIQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite" -QualifierName Key
         
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:16.07.2014
         Last modification date: 16.07.2014
+        19.09.2014 --> renamed from remove-wmipropertyqualifier to remove-wmiqualifier
 
 	.LINK
 		www.powershellDistrict.com
@@ -1068,7 +1051,7 @@ Function Remove-WMIPropertyQualifier {
         [Parameter(Mandatory=$false)]
         [string]$NameSpace="Root\cimv2",
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [ValidateScript({
             $_ -ne ""
         })]
@@ -1084,10 +1067,17 @@ Function Remove-WMIPropertyQualifier {
     Process{
         foreach ($Qualifier in $QualifierName){
 
-            $Class = Get-WMIClass -ClassName $ClassName -NameSpace $NameSpace
-            $Class.Properties[$PropertyName].Qualifiers.remove($QualifierName)
-            $Class.put() | out-null
-            Write-Output "The $($QualifierName) has been removed from $($PropertyName)"
+        #If class has instances, qualifiers cannot be removed.
+        $Instances= get-WMIClassInstance -NameSpace $NameSpace -ClassName $ClassName
+            if (!($Instances)){
+                $Class = Get-WMIClass -ClassName $ClassName -NameSpace $NameSpace
+                $Class.Properties[$PropertyName].Qualifiers.remove($Qualifier)
+                $Class.put() | out-null
+                Write-Output "The $($Qualifier) has been removed from $($PropertyName)"
+                }
+             else{
+                write-warning "The class $($classname) has instances. Remove the instances first and try again."
+             }
         }
 
     }
