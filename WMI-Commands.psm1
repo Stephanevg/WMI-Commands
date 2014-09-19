@@ -921,7 +921,7 @@ $ManagementScope = New-object System.Management.ManagementScope($MPath,$null)
 #>
 }
 
-Function Set-WMIPropertyQualifier {
+Function Set-WMIQualifier {
 <#
 	.SYNOPSIS
 		This function sets a WMI property qualifier value.
@@ -929,7 +929,10 @@ Function Set-WMIPropertyQualifier {
 	.DESCRIPTION
 		The function allows to set a new property qualifier on an existing WMI property.
 
-	.PARAMETER  ClassName
+    .PARAMETER  Key
+        Specify if the property will be a key property.	
+
+    .PARAMETER  ClassName
 		Specify the name of the class where the property resides.
 
 	.PARAMETER  PropertyName
@@ -942,18 +945,19 @@ Function Set-WMIPropertyQualifier {
 		The value of the qualifier.
 
 	.EXAMPLE
-		Set-WMIPropertyQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite" -QualifierName Key -QualifierValue $true
+		Set-WMIQualifier -ClassName "PowerShellDistrict" -PropertyName "WebSite" -Key -QualifierValue $true
         Sets the propertyQualifier "Key" on the property "WebSite"
     .EXAMPLE
-		
+		Set-WMIQualifier -NameSpace root\district -ClassName PowerShellDistrict -PropertyName author -QualifierName Description -QualifierValue "The author is really a nice guy :)"
 
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stephane van Gulick
         Creation date:16.07.2014
         Last modification date: 16.07.2014
-
+        19/09/2014  --> changed the return of the function. (get-wmiqualifier).
+                    --> updated help.
 	.LINK
 		www.powershellDistrict.com
 
@@ -1002,14 +1006,15 @@ Function Set-WMIPropertyQualifier {
 
     if ($Key){
         $Class.Properties[$PropertyName].Qualifiers.Add("Key",$true)
-        $Class.put()
+        $Class.put() |  Out-Null
         
         
     }else{
         $Class.Properties[$PropertyName].Qualifiers.add($QualifierName,$QualifierValue, $IsAmended,$IsLocal,$PropagatesToInstance,$PropagesToSubClass)
-        $Class.put()
+        $Class.put() |  Out-Null
     }
     
+    return Get-WMIQualifier -NameSpace $NameSpace -ClassName $ClassName -PropertyName $PropertyName
 
 
 }
