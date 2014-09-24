@@ -530,20 +530,21 @@ Function Export-MofFile {
 
 	.DESCRIPTION
 		The function allows export specefic WMI Namespaces, classes and properties by exporting the data to a MOF file format.
-        Use the Generated MOF file in whit the cmdlet "Import-MofFile" in order to import, or re-import the existing class.
+        Use the Generated MOF file whit the cmdlet "Import-MofFile" in order to import, or re-import the existing class.
 
-	.PARAMETER  MofFile
-		Specify the complete path to the MOF file.(Must contain ".mof" as extension.
+	.PARAMETER  Path
+		Specify the complete path to the MOF file.(Must contain ".mof" as extension.)
 
 	.EXAMPLE
 		Export-MofFile -ClassName "PowerShellDistrict" -Path "C:\temp\PowerShellDistrict_Class.mof"
 
 	.NOTES
-		Version: 1.0
+		Version: 1.1
         Author: Stéphane van Gulick
         Creation date:18.07.2014
         Last modification date: 18.07.2014
         History : Creation : 18.07.2014 --> SVG
+                    Rewrote the function. 24/09/2014
 
 	.LINK
 		www.powershellDistrict.com
@@ -573,22 +574,30 @@ Function Export-MofFile {
     begin{}
     Process{
 
-    if ($PSBoundParameters['ClassName']){
-        write-verbose "Checking for Namespace: $($Namespace) and Class $($Classname)"
-
-        [wmiclass]$WMI_Info = Get-WmiObject -Namespace $NameSpace -Class $ClassName -list 
-
-        }
-    else{
-        [wmi]$WMI_Info = Get-WmiObject -Namespace $NameSpace -list
-
+    if (!(Test-Path $Path)){
+        New-Item -Path $Path -ItemType "File" -Force
     }
 
-        [system.management.textformat]$mof = "mof"
-        $MofText = $WMI_Info.GetText($mof)
-        Write-Output "Exporting infos to $($path)"
+    
+        $Root = $NameSpace.Split("\")[0]
+        $NameSpaceRoot = $NameSpace.Split("\")[1]
+    
+    write-verbose "Getting root: $($Root) and NameSpace $($NameSpaceRoot)"
+    [wmi]$WMI_NameSpace = Get-WMINameSpace -Root $Root -Name $NameSpaceRoot
+    [wmi]$WMI_Class = Get-WMIClass -NameSpace $NameSpace -ClassName $ClassName
+    $WMI_NameSpace
+
+    [system.management.textformat]$mof = "mof"
+
+    $MofTextNameSpace = $WMI_NameSpace.GetText($mof) -replace "\;","`r"
+    $MofTextClass = $WMI_Class.GetText($mof) -replace "\;","`r"
+    Write-Output "Exporting infos to $($path)"
+
         "#PRAGMA AUTORECOVER" | out-file -FilePath $Path
-        $MofText | out-file -FilePath $Path -Append
+        
+        $MofTextNameSpace | out-file -FilePath $Path -Append
+
+        $MofTextClass | out-file -FilePath $Path -Append
         
         
 
