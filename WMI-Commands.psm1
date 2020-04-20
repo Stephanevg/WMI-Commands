@@ -276,7 +276,7 @@ Function Set-WMIPropertyValue {
 	)
     begin{
          write-verbose "Setting new  value : $($PropertyValue) on property: $($PropertyName):"
-         [wmiclass]$WMI_Class = Get-WmiObject -Class $ClassName -list
+         [wmiclass]$WMI_Class = Get-WmiObject -Namespace $NameSpace -Class $ClassName -list
          
 
     }
